@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
+# Упростить, уберём регистрацию, оставить чисто для админа/HR
 class User(AbstractUser):
     class Roles(models.TextChoices):
         CANDIDATE = 'candidate', 'Candidate'
@@ -17,6 +18,12 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
+    class Meta:
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
+
+    def __str__(self):
+        return self.email
 
 class Resume(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='resumes')
@@ -24,6 +31,13 @@ class Resume(models.Model):
     resumetext = models.CharField(max_length=3000, blank=True)
     title = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Резюме"
+        verbose_name_plural = "Резюме"
+
+    def __str__(self):
+        return self.title
 
 
 class Vacancy(models.Model):
@@ -44,6 +58,12 @@ class Vacancy(models.Model):
     published_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, limit_choices_to={'role': 'hr'})
 
+    class Meta:
+        verbose_name = "Вакансия"
+        verbose_name_plural = "Вакансии"
+
+    def __str__(self):
+        return self.title
 
 class Application(models.Model):
     class Status(models.TextChoices):
@@ -57,7 +77,15 @@ class Application(models.Model):
     vacancy = models.ForeignKey(Vacancy, on_delete=models.CASCADE, related_name='applications')
     resume = models.ForeignKey(Resume, on_delete=models.SET_NULL, null=True)
     text = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NEW)
     applied_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Отклик"
+        verbose_name_plural = "Отклики"
+
+    def __str__(self):
+        return self.user
 
 
 class News(models.Model):
@@ -67,6 +95,12 @@ class News(models.Model):
     published_at = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, limit_choices_to={'role': 'hr'})
 
+    class Meta:
+        verbose_name = "Новость"
+        verbose_name_plural = "Новости"
+
+    def __str__(self):
+        return self.title
 
 class Review(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
@@ -75,6 +109,12 @@ class Review(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_published = models.BooleanField(default=False)
 
+    class Meta:
+        verbose_name = "Отзыв"
+        verbose_name_plural = "Отзывы"
+
+    def __str__(self):
+        return self.user
 
 class ContactRequest(models.Model):
     class Status(models.TextChoices):
@@ -87,3 +127,10 @@ class ContactRequest(models.Model):
     submitted_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.NEW)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Заявка"
+        verbose_name_plural = "Заявки"
+
+    def __str__(self):
+        return self.name
