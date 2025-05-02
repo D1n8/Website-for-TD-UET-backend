@@ -2,7 +2,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
-# Упростить, уберём регистрацию, оставить чисто для админа/HR
+# Упростить, уберём регистрацию, оставить чисто для админа/HR (Дима)
+
+# с юзерами надо переделывать, так как рассчитывал на регистрацию, но скорее всего обойдусь чисто Permissions AllowAny, посмотрим (02.05 - Дима)
 class User(AbstractUser):
     class Roles(models.TextChoices):
         CANDIDATE = 'candidate', 'Candidate'
@@ -10,8 +12,7 @@ class User(AbstractUser):
         ADMIN = 'admin', 'Administrator'
 
     email = models.EmailField(unique=True)
-    patronymic = models.CharField(max_length=50, blank=True, null=True) # добавил отчество, имя и фамилия есть в AbstractUser, если не будем делать
-                                                                         # кастомную модель юзера
+    patronymic = models.CharField(max_length=50, blank=True, null=True) 
     phone = models.CharField(max_length=20, blank=True)
     role = models.CharField(max_length=20, choices=Roles.choices, default=Roles.CANDIDATE)
 
@@ -25,27 +26,13 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
 
-class Resume(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='resumes')
-    resumefile = models.FileField(upload_to='resumes/', null=True)
-    resumetext = models.CharField(max_length=3000, blank=True)
-    title = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = "Резюме"
-        verbose_name_plural = "Резюме"
-
-    def __str__(self):
-        return self.title
-
 
 class Vacancy(models.Model):
     class EmploymentType(models.TextChoices):
         FULL_TIME = 'full_time', 'Full Time'
         PART_TIME = 'part_time', 'Part Time'
         INTERN = 'intern', 'Internship'
-        CONTRACT = 'contract', 'Contract' #пока накидал базово
+        CONTRACT = 'contract', 'Contract'
 
     title = models.CharField(max_length=255)
     description = models.TextField()
@@ -65,6 +52,23 @@ class Vacancy(models.Model):
     def __str__(self):
         return self.title
 
+
+# Отдельные модели резюме скорее всего не нужны? (02.05 - Дима) 
+
+# class Resume(models.Model):
+#     resumefile = models.FileField(upload_to='resumes/', null=True)
+#     resumetext = models.CharField(max_length=3000, blank=True)
+#     title = models.CharField(max_length=100)
+#     created_at = models.DateTimeField(auto_now_add=True)
+
+#     class Meta:
+#         verbose_name = "Резюме"
+#         verbose_name_plural = "Резюме"
+
+#     def __str__(self):
+#         return self.title
+    
+
 class Application(models.Model):
     class Status(models.TextChoices):
         NEW = 'new', 'New'
@@ -73,9 +77,17 @@ class Application(models.Model):
         REJECTED = 'rejected', 'Rejected'
         ACCEPTED = 'accepted', 'Accepted'
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications')
+    #новая форма, так как юзер - анон
+    surname = models.CharField(max_length=50)
+    name = models.CharField(max_length=50)
+    patronymic = models.CharField(max_length=50)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+    
     vacancy = models.ForeignKey(Vacancy, on_delete=models.CASCADE, related_name='applications')
-    resume = models.ForeignKey(Resume, on_delete=models.SET_NULL, null=True)
+    #модель резюме пока перенесена сюда (02.05 - Дима) 
+    resume_file = models.FileField(upload_to='resumes/')
+    resume_text = models.TextField()
     text = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.NEW)
     applied_at = models.DateTimeField(auto_now_add=True)
@@ -93,7 +105,7 @@ class News(models.Model):
     content = models.TextField()
     image = models.ImageField(upload_to='blog/', null=True, blank=True) # это надо настроить, но пока чтобы было
     published_at = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, limit_choices_to={'role': 'hr'})
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, limit_choices_to={'role': 'admin'})
 
     class Meta:
         verbose_name = "Новость"
@@ -102,6 +114,8 @@ class News(models.Model):
     def __str__(self):
         return self.title
 
+
+# тут не знаю, как делать отзывы с анонимными пользователями (02.05 - Дима)
 class Review(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
     content = models.TextField()
@@ -117,15 +131,14 @@ class Review(models.Model):
         return self.user
 
 class ContactRequest(models.Model):
-    class Status(models.TextChoices):
-        NEW = 'new', 'New'
-        HANDLED = 'handled', 'Handled' # не знаю надо или нет, типо ответка на реквест
 
-    name = models.CharField(max_length=100)
+    surname = models.CharField(max_length=50)
+    name = models.CharField(max_length=50)
+    patronymic = models.CharField(max_length=50)
     email = models.EmailField()
+    phone = models.CharField(max_length=20)
     message = models.TextField()
     submitted_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NEW)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:

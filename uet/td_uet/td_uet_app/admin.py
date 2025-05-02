@@ -55,6 +55,6 @@ class ReviewAdmin(admin.ModelAdmin):
 
 @admin.register(ContactRequest)
 class ContactRequestAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'submitted_at', 'status')
+    list_display = ('name', 'email', 'submitted_at',)
     search_fields = ('name', 'email')
     list_filter = ('status', 'submitted_at')
