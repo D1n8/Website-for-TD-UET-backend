@@ -1,15 +1,10 @@
 from rest_framework import serializers
-from .models import User, Resume, Vacancy, Application, News, Review, ContactRequest
+from .models import User, Vacancy, Application, News, Review, ContactRequest
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'email', 'first_name', 'last_name', 'patronymic', 'role']
-
-class ResumeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Resume
-        fields = '__all__'
 
 class VacancySerializer(serializers.ModelSerializer):
     class Meta:

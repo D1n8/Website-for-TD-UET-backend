@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Resume, Vacancy, Application, News, Review, ContactRequest
+from .models import User, Vacancy, Application, News, Review, ContactRequest
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 
@@ -18,13 +18,6 @@ class UserAdmin(BaseUserAdmin):
     ordering = ('email',)
 
 
-@admin.register(Resume)
-class ResumeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'title', 'created_at')
-    search_fields = ('title', 'user__email')
-    list_filter = ('created_at',)
-
-
 @admin.register(Vacancy)
 class VacancyAdmin(admin.ModelAdmin):
     list_display = ('title', 'location', 'employment_type', 'published_at')
@@ -34,9 +27,8 @@ class VacancyAdmin(admin.ModelAdmin):
 
 @admin.register(Application)
 class ApplicationAdmin(admin.ModelAdmin):
-    list_display = ('user', 'vacancy', 'status', 'applied_at')
+    list_display = ('surname', 'name', 'patronymic', 'vacancy', 'applied_at')
     search_fields = ('user__email', 'vacancy__title')
-    list_filter = ('status', 'applied_at')
 
 
 @admin.register(News)
@@ -57,4 +49,3 @@ class ReviewAdmin(admin.ModelAdmin):
 class ContactRequestAdmin(admin.ModelAdmin):
     list_display = ('name', 'email', 'submitted_at',)
     search_fields = ('name', 'email')
-    list_filter = ('status', 'submitted_at')
